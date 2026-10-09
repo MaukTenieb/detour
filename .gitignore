@@ -1,0 +1,4 @@
+__pycache__/
+*.webp
+*.png
+!halo-compare.png
