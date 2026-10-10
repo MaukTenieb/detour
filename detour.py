@@ -39,8 +39,16 @@ def _trim(L,box):
         for k in np.where(d[:lim]>max(6,4*base))[0]:
             if np.all(flat[:k+1]<10):best=k+1
         return best
-    m=.045;T=P.transpose(1,0,2)
-    t=side(P,int(h*m));b=side(P[::-1],int(h*m));l=side(T,int(w*m));r=side(T[::-1],int(w*m))
+    m=.08;T=P.transpose(1,0,2)
+    t=side(P,int(h*m));b=side(P[::-1],int(h*.045));l=side(T,int(w*m));r=side(T[::-1],int(w*m))
+    # a hand-drawn panel border (slightly tilted or broken by the figure) still shows as a dark line within the first pixels:
+    # its median along the side is dark. Step past it, and past the gutter outside it.
+    def dark(Q,start,lim=10):
+        k=start
+        for j in range(start,min(start+lim,len(Q))):
+            if np.median(Q[j][:,0])<45:k=j+1
+        return k
+    t=dark(P,t);l=dark(T,l);r=dark(T[::-1],r)  # not the bottom: dark clothes and tables sit there
     return (y0+t,y1-b),(x0+l,x1-r)
 def _table_lines(P):
     """candidate table tops: a horizontal edge crossing most of the panel low down, over a band that is flat from side to side"""
@@ -72,7 +80,13 @@ def table_hands(p,m,cut,J=None,k=3.5):
     if cut is None or cut>=h-2:return m
     band=L[cut+2:min(h,cut+8)]
     if not band.size:return m
-    wood=np.array([np.median(band[:,max(0,x-20):x+21].reshape(-1,3),axis=0) for x in range(w)])
+    bm=(m[cut+2:min(h,cut+8)]==0)  # the wood as the networks see it: what they left out under the edge, not the hands on it
+    if bm.sum()<20:bm=np.ones_like(bm)
+    full=np.median(band[bm],axis=0)
+    def wcol(x):
+        sl=band[:,max(0,x-20):x+21];mk=bm[:,max(0,x-20):x+21]
+        return np.median(sl[mk],axis=0) if mk.sum()>=10 else full
+    wood=np.array([wcol(x) for x in range(w)])
     d=np.sqrt((((L[cut:]-wood[None])**2)*np.array([.6,1.6,1.6])).sum(-1))
     out=m.copy();out[cut:]=0
     cand=np.zeros((h,w),np.uint8);cand[cut:]=(d>14)&(m[cut:]>0)
@@ -322,6 +336,7 @@ def run(src,out,rows=2,cols=4,FH=472,pad=10,proof=None,report=None,maps=None,ver
     boxes,cuts=find_panels(im,rows,cols,with_tables=True);P=[im[y0:y1,x0:x1].copy() for (y0,y1),(x0,x1) in boxes];N=len(P)
     J=[judge_panel(p,None if maps is None else maps[i],cuts[i]) for i,p in enumerate(P)]
     M=[table_hands(P[i],decide(j),cuts[i],j) for i,j in enumerate(J)]
+    below=[(M[i].copy() if cuts[i] else None) for i in range(len(M))]  # what may stand below the table edge: the hands, nothing grown later
     # the other panels, aligned on this one, settle what the three judges left uncertain (2 against 1)
     hb=[headbox(m) for m in M];ref=[]
     for i in range(N):
@@ -344,7 +359,9 @@ def run(src,out,rows=2,cols=4,FH=472,pad=10,proof=None,report=None,maps=None,ver
     # alpha and colour
     RGBA=[];
     for i,p in enumerate(P):
-        M[i]=refine_outline(M[i],J[i]);M[i],pk=remove_pockets(M[i],J[i]);doubts[i]['pockets_px']=pk;A,C=alpha_matte(p,M[i],J[i]);M[i]=(M[i]>0)&(A>=.5);M[i]=keep_figure(M[i].astype(np.uint8));RGBA.append(np.dstack([C,(A*255).astype(np.uint8)]))  # the shape follows the matte: a rim pixel that is mostly backdrop is outside
+        M[i]=refine_outline(M[i],J[i]);M[i],pk=remove_pockets(M[i],J[i]);c=cuts[i]
+        if c:M[i][c:]&=below[i][c:]
+        doubts[i]['pockets_px']=pk;A,C=alpha_matte(p,M[i],J[i]);M[i]=(M[i]>0)&(A>=.5);M[i]=keep_figure(M[i].astype(np.uint8));RGBA.append(np.dstack([C,(A*255).astype(np.uint8)]))  # the shape follows the matte: a rim pixel that is mostly backdrop is outside
     # one scale for all, corrected per row on head and shoulders, the top of the head on one line
     hb=[headbox(r[...,3]/255) for r in RGBA];sw=[shoulders(r[...,3]/255,hb[i][0]) for i,r in enumerate(RGBA)]
     t0=hb[0][0];ph=(cuts[0]+4) if cuts[0] else P[0].shape[0];s0=(FH-14)/(ph-t0);T=[]

@@ -41,7 +41,14 @@ Artist: https://github.com/MaukTenieb · Music and sales: https://mauktenieb.ban
 
 ## Blind test
 
-`blind-test.png`: a sheet Detour had never seen (a lighthouse keeper, made for the test), cut with no setting. On a dark and a white background. The hands resting on the table stay; the table goes.
+`blind-test.png`: four sheets Detour had never seen, made for the test, on a dark and a white background:
+
+1. long loose red hair on a pale cream backdrop;
+2. a lit candle held in hand, black tuxedo on a dark backdrop;
+3. a wide figure touching the panel sides, hand-drawn panel borders, gradient backdrop;
+4. a yellow oilskin and a white beard on grey.
+
+In each, panel 7 leans on the table: the hands resting on it stay, the wood goes.
 
 ## Rights
 
