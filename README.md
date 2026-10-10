@@ -10,6 +10,8 @@ python3 detour.py sheet.jpg -o sprite.webp --glow 230,245,255,.55,5    # optiona
 
 The two models (U²-Net, IS-Net, about 350 MB) are downloaded once to `~/.cache/detour`. Everything then runs offline, on the CPU, in about 20 s per sheet.
 
+The story of the method, with its failures and fixes: [Detour, three judges for one outline](https://mauktenieb.github.io/insertkoin/notes/detour.html) · [Catchlight, lights in the eyes of eighteen Masks](https://mauktenieb.github.io/insertkoin/notes/catchlight.html).
+
 ## How it works
 
 - **Panels found by themselves:** gutters of any colour or none, drawn frames stepped over, and a table in front of the figure cut away at its top edge.
