@@ -112,6 +112,32 @@ K=np.ones((3,3),np.uint8)
 def open2(m):
     """an exact 2x2 opening (OpenCV's own shifts the result by a pixel with an even kernel)"""
     k2=np.ones((2,2),np.uint8);return cv2.dilate(cv2.erode(m,k2,anchor=(0,0)),k2,anchor=(1,1))
+def remove_pockets(m,J,k=3.5,area=40):
+    """Backdrop seen through the figure (floor between the legs, wall lit by a spark) that every judge kept.
+    Each candidate patch is compared with its own surroundings: its colour must match the backdrop just outside
+    the figure and differ clearly from the figure pixels that ring it; and it must lie where backdrop can show:
+    in the bottom sixth of the panel, or against the backdrop outside. A grey suit on a grey wall stays (its ring
+    is the same suit); a beige floor between black legs goes; a brown muzzle in a black face stays (not by the
+    backdrop)."""
+    L=J['lab'];W=np.array([.6,1.6,1.6],np.float32);h,w=m.shape
+    sure=(m==0)&((J['z']<k)|J['sh'])
+    if sure.sum()<50:return m,0
+    Bl=_near_mean(L,sure.astype(np.float32),(9,17,33,65,129))
+    dB=np.sqrt((((L-Bl)**2)*W).sum(-1))
+    cand=open2(open2(((m==1)&(dB<8)).astype(np.uint8)))
+    outside=cv2.dilate(sure.astype(np.uint8),K,iterations=3)>0
+    n,l,st,_=cv2.connectedComponentsWithStats(cand,connectivity=4);out=m.copy();gone=0
+    dist=lambda a,b:float(np.sqrt((((a-b)**2)*W).sum()))
+    for i in range(1,n):
+        x,y,ww,hh,ar=st[i]
+        if ar<area:continue
+        sel=l==i
+        if not (y+hh>=h*5/6 or (sel&outside).any()):continue
+        ring=(cv2.dilate(sel.astype(np.uint8),K,iterations=3)>0)&~sel&(m==1)
+        if ring.sum()<10:continue
+        c=L[sel].mean(0);rc=L[ring].mean(0);bc=Bl[sel].mean(0)
+        if dist(c,rc)>22 and dist(c,bc)<7 and dist(c,rc)>3*dist(c,bc):out[sel]=0;gone+=int(ar)
+    return out,gone
 def refine_outline(m,J,k=3.5,r=4):
     """the neural judges see shapes, not pixels: within a few pixels of the outline the backdrop model decides.
     Backdrop-like pixels joined to the backdrop leave; ink and figure pixels just outside come back in."""
@@ -283,7 +309,7 @@ def run(src,out,rows=2,cols=4,FH=472,pad=10,proof=None,report=None,maps=None,ver
     # alpha and colour
     RGBA=[];
     for i,p in enumerate(P):
-        M[i]=refine_outline(M[i],J[i]);A,C=alpha_matte(p,M[i],J[i]);M[i]=(M[i]>0)&(A>=.5);M[i]=keep_figure(M[i].astype(np.uint8));RGBA.append(np.dstack([C,(A*255).astype(np.uint8)]))  # the shape follows the matte: a rim pixel that is mostly backdrop is outside
+        M[i]=refine_outline(M[i],J[i]);M[i],pk=remove_pockets(M[i],J[i]);doubts[i]['pockets_px']=pk;A,C=alpha_matte(p,M[i],J[i]);M[i]=(M[i]>0)&(A>=.5);M[i]=keep_figure(M[i].astype(np.uint8));RGBA.append(np.dstack([C,(A*255).astype(np.uint8)]))  # the shape follows the matte: a rim pixel that is mostly backdrop is outside
     # one scale for all, corrected per row on head and shoulders, the top of the head on one line
     hb=[headbox(r[...,3]/255) for r in RGBA];sw=[shoulders(r[...,3]/255,hb[i][0]) for i,r in enumerate(RGBA)]
     t0=hb[0][0];ph=P[0].shape[0];s0=(FH-14)/(ph-t0);T=[]
