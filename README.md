@@ -22,6 +22,21 @@ The two models (U²-Net, IS-Net, about 350 MB) are downloaded once to `~/.cache/
 - **Consistent size:** each row is matched to the first on the silhouette of the head and shoulders. The top of the head sits on one line.
 - **The program checks itself:** the proof shows every frame at full size on magenta and on white. It outlines in yellow whatever disagrees with the seven other frames, and the report counts these doubts.
 
+## Catchlight
+
+The second stage, after the cut: the light that lives in a character's eye, placed on every frame of the strip.
+
+**Online: https://mauktenieb.github.io/detour/catchlight.html**, one HTML page, nothing to install.
+
+- **The eyes found on each frame:** MediaPipe Face Mesh, run in the browser, gives the centre of each iris. Each frame is tried at three scales and mirrored before it counts as missed.
+- **Shut lids stay dark:** the opening of each eye is measured against the character's usual opening; a frame with the lids closed gets no light.
+- **Faces the model does not know** (a beak, a muzzle, a helmet): the face model is switched off for that character, and the lights the artist placed are followed from frame to frame by template matching.
+- **One lit eye** when the character has an odd eye (dogXim): the eye nearest to where it was is kept.
+- **By hand:** click to add a light, drag to move it, double-click or long-press to remove it. Colour, size, rhythm, and a live preview drawn as in Insert Koin.
+- **Out:** `catchlights.json`, in sprite-cell units. Insert Koin reads it at start-up: put the file in the insertkoin repository and every Mask takes its new lights.
+
+Tested on the 18 Masks: the face model finds every frame of the human faces and masks (Auvergne, dogXim, C7H5N3O6, Cadaver Synod…); Honey Buzzard and Croisière Noire are placed by hand and followed.
+
 <!-- network:start -->
 ## Provenance
 
@@ -49,4 +64,4 @@ Copyright © Mauk Tenieb & Korhogo. All rights reserved. The source code is publ
 
 No reproduction or reuse without written permission, including for training or use by artificial-intelligence systems.
 
-The neural models are third-party works, downloaded at first run and not included here: U²-Net (Qin et al.) and IS-Net (DIS, Qin et al.), Apache-2.0, through the rembg releases.
+The neural models are third-party works, downloaded at first run and not included here: U²-Net (Qin et al.) and IS-Net (DIS, Qin et al.), Apache-2.0, through the rembg releases. Catchlight loads MediaPipe Face Mesh (Google, Apache-2.0) from jsDelivr.

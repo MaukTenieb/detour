@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Detour · Catchlight</title>
+<meta name="description" content="Detour · Catchlight: finds the eyes of a character on every frame of a sprite strip and places the catchlights; drag them by hand where the machine fails. By Mauk Tenieb.">
+<meta name="robots" content="index, follow, noimageindex, noai, noimageai">
+<link rel="canonical" href="https://mauktenieb.github.io/detour/catchlight.html">
+<!--
+ Copyright © Mauk Tenieb & Korhogo. All rights reserved. The source code is published for reading,
+ reflections, additions, requests, etc. No use for training artificial intelligence. Contact: mauktenieb@gmail.com
+
+ Catchlight: the light that lives in a character's eye. This page
+  1. finds the eyes on each frame with MediaPipe Face Mesh (iris landmarks 468 and 473), in the browser;
+  2. leaves the light out where the lids are shut;
+  3. follows the eyes by template matching on the frames the face model misses (profiles, beaks, muzzles, masks);
+  4. lets the artist drag, add or remove each light by hand;
+  5. writes catchlights.json, which Insert Koin reads at start-up.
+ Coordinates are in sprite-cell units (the w × h of the strip's cell), as in Insert Koin.
+-->
+<style>
+:root{--bg:#07060a;--fg:#e8e0c8;--dim:#8a8170;--ac:#c9a84c;--ac2:#ffe08a;--ln:rgba(201,168,76,.35);--pn:#0f0d13}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font:13px/1.5 "DM Mono",ui-monospace,monospace}
+header{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--ln)}
+h1{margin:0;font:400 26px/1 "Bebas Neue",Impact,sans-serif;letter-spacing:.06em;color:var(--ac2)}
+h1 span{color:var(--dim)}
+.sp{flex:1}
+button,select,input,label.b{font:inherit;color:var(--fg);background:var(--pn);border:1px solid var(--ln);border-radius:3px;padding:6px 10px;min-height:34px}
+button{cursor:pointer}button:hover,label.b:hover{border-color:var(--ac);color:var(--ac2)}
+button.on{border-color:var(--ac);color:var(--ac2)}
+button:disabled{opacity:.4;cursor:default}
+label.b{cursor:pointer;display:inline-flex;align-items:center}
+input[type=file]{display:none}
+input[type=color]{padding:2px;width:44px}
+input[type=number]{width:70px}
+main{padding:12px 16px 40px;max-width:1400px;margin:0 auto}
+.row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:10px 0}
+.row>span{color:var(--dim)}
+#status{color:var(--dim);min-height:1.5em}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:10px}
+.tile{position:relative;border:1px solid var(--ln);background:#1a1820;touch-action:none}
+.tile canvas{display:block;width:100%;height:auto;cursor:crosshair}
+.tile .tag{position:absolute;left:6px;top:4px;font-size:11px;color:var(--ac2);text-shadow:0 1px 3px #000;pointer-events:none}
+.tile .src{position:absolute;right:6px;top:4px;font-size:11px;color:var(--dim);text-shadow:0 1px 3px #000;pointer-events:none}
+#prev{display:block;margin:0 auto;background:#1a1820;border:1px solid var(--ln);max-width:100%}
+.help{color:var(--dim);font-size:12px;margin:6px 0 14px}
+.help b{color:var(--fg);font-weight:400}
+footer{color:var(--dim);font-size:11px;padding:20px 16px;border-top:1px solid var(--ln)}
+a{color:var(--ac2)}
+</style>
+</head>
+<body>
+<header>
+ <h1>DETOUR <span>·</span> CATCHLIGHT</h1>
+ <div class="sp"></div>
+ <button id="lang" type="button">FR</button>
+</header>
+<main>
+ <div class="row">
+  <select id="mask" aria-label="Mask"></select>
+  <label class="b"><input type="file" id="file" accept="image/*"><span data-t="open">Open a strip…</span></label>
+  <span data-t="frames">Frames</span><input type="number" id="nf" min="1" max="32" value="8">
+ </div>
+ <div class="row">
+  <button id="detect" type="button" data-t="detect">Find the eyes</button>
+  <button id="track" type="button" data-t="track">Follow from my points</button>
+  <button id="undo" type="button" data-t="undo">Undo</button>
+  <button id="fm" type="button"></button>
+ </div>
+ <div class="row">
+  <span data-t="light">Light</span>
+  <select id="kind"><option value="pulse">pulse</option><option value="eyes">blink</option></select>
+  <input type="color" id="col" value="#7dff8a" aria-label="Colour">
+  <span data-t="size">Size</span><input type="number" id="rad" min=".5" max="12" step=".1" value="2.4">
+  <span data-t="speed">Speed</span><input type="number" id="spd" min=".1" max="5" step=".1" value="1.6">
+  <select id="ne" aria-label="Eyes"><option value="2">2</option><option value="1">1</option></select><span data-t="lit">lit eyes</span>
+  <button id="zoom" type="button" data-t="zoom">Face / Whole</button>
+ </div>
+ <p class="help" id="help"></p>
+ <p id="status"></p>
+ <div id="grid"></div>
+ <div class="row" style="justify-content:center;margin-top:18px"><canvas id="prev" width="300" height="270"></canvas></div>
+ <div class="row" style="justify-content:center">
+  <button id="dl" type="button" data-t="dl">Download catchlights.json</button>
+  <button id="copy" type="button" data-t="copy">Copy</button>
+  <a id="up" href="https://github.com/MaukTenieb/insertkoin/upload/main" target="_blank" rel="noopener" data-t="up">Upload it to Insert Koin</a>
+ </div>
+</main>
+<footer>Copyright © Mauk Tenieb &amp; Korhogo. Part of <a href="https://github.com/MaukTenieb/detour">Detour</a>. Face model: MediaPipe Face Mesh (Apache 2.0), loaded from jsDelivr.</footer>
+<script>
+'use strict';
+const T={
+ en:{open:'Open a strip…',frames:'Frames',detect:'Find the eyes',track:'Follow from my points',clear:'Clear frame',undo:'Undo',light:'Light',lit:'lit eye(s)',size:'Size',speed:'Speed',zoom:'Face / Whole',dl:'Download catchlights.json',copy:'Copy',up:'Upload it to Insert Koin',
+  help:'<b>Click</b> an empty spot: add a light. <b>Drag</b> a light: move it. <b>Double-click</b> or <b>long-press</b> a light: remove it. A frame with no light keeps the eyes dark (shut lids, turned head).',
+  loading:'Loading the face model…',run:(i,n)=>`Frame ${i+1} of ${n}…`,done:(a,b,c)=>`${a} frames by the face model, ${b} followed, ${c} left dark.`,nomodel:'The face model did not load (offline?). Place the lights by hand, then “Follow from my points”.',tracked:n=>`${n} frames followed from your points.`,fm:'Face model:',on:'on',off:'off (beak, muzzle…)',unsure:n=>`The face model does not recognise this face: your points are kept, ${n} frames followed from them.`,need:'Place the lights on one frame first.',copied:'Copied.',saved:'Saved in this browser.',sheet:'Strip',none:'—',src:{face:'face',track:'followed',hand:'hand',kept:'kept',dark:'lids shut',miss:'not found'}},
+ fr:{open:'Ouvrir une planche…',frames:'Images',detect:'Trouver les yeux',track:'Suivre depuis mes points',clear:'Vider l’image',undo:'Annuler',light:'Lumière',lit:'œil(s) allumé(s)',size:'Taille',speed:'Vitesse',zoom:'Visage / Entier',dl:'Télécharger catchlights.json',copy:'Copier',up:'Le déposer dans Insert Koin',
+  help:'<b>Clic</b> sur un endroit vide : ajoute une lumière. <b>Glisser</b> une lumière : la déplace. <b>Double-clic</b> ou <b>appui long</b> sur une lumière : la retire. Une image sans lumière garde les yeux éteints (paupières closes, tête tournée).',
+  loading:'Chargement du modèle de visage…',run:(i,n)=>`Image ${i+1} sur ${n}…`,done:(a,b,c)=>`${a} images par le modèle de visage, ${b} suivies, ${c} laissées éteintes.`,nomodel:'Le modèle de visage n’a pas chargé (hors ligne ?). Pose les lumières à la main, puis « Suivre depuis mes points ».',tracked:n=>`${n} images suivies depuis tes points.`,fm:'Modèle de visage :',on:'oui',off:'non (bec, mufle…)',unsure:n=>`Le modèle de visage ne reconnaît pas ce visage : tes points sont gardés, ${n} images suivies depuis eux.`,need:'Pose d’abord les lumières sur une image.',copied:'Copié.',saved:'Gardé dans ce navigateur.',sheet:'Planche',none:'—',src:{face:'visage',track:'suivi',hand:'main',kept:'gardé',dark:'paupières closes',miss:'introuvable'}}};
+let LANG='en';try{LANG=localStorage.getItem('ik.lang')||(navigator.language||'').slice(0,2)==='fr'&&'fr'||'en';}catch(e){}
+if(LANG!=='fr')LANG='en';
+const $=id=>document.getElementById(id),t=k=>T[LANG][k];
+function fmBtn(){const m=M();$('fm').textContent=t('fm')+' '+(m&&m.model===false?t('off'):t('on'));$('fm').classList.toggle('on',!(m&&m.model===false));}
+function i18n(){fmBtn();document.documentElement.lang=LANG;$('lang').textContent=LANG==='fr'?'EN':'FR';document.querySelectorAll('[data-t]').forEach(e=>e.textContent=t(e.dataset.t));$('help').innerHTML=t('help');draw();}
+$('lang').onclick=()=>{LANG=LANG==='fr'?'en':'fr';try{localStorage.setItem('ik.lang',LANG);}catch(e){}i18n();};
+const status=s=>$('status').textContent=s||'';
+
+/* ---------- data: catchlights.json of Insert Koin (same site), edited here ---------- */
+const IK='../insertkoin/';
+let DB={version:1,masks:{}},cur=null,img=null,FULL=false,hist=[];
+const M=()=>DB.masks[cur];
+async function boot(){
+ let local=null;try{local=JSON.parse(localStorage.getItem('detour.catchlights')||'null');}catch(e){}
+ try{const r=await fetch(IK+'catchlights.json',{cache:'no-cache'});if(r.ok)DB=await r.json();}catch(e){}
+ if(local&&local.masks)for(const id in local.masks)DB.masks[id]=local.masks[id];
+ fillMasks();const ids=Object.keys(DB.masks);if(ids.length)pick(ids[0]);i18n();
+}
+function fillMasks(){const s=$('mask');s.innerHTML='';for(const id of Object.keys(DB.masks)){const o=document.createElement('option');o.value=id;o.textContent=DB.masks[id].name||id;s.appendChild(o);}if(cur)s.value=cur;}
+$('mask').onchange=e=>pick(e.target.value);
+function save(){try{const mine={version:1,masks:{}};mine.masks[cur]=M();const old=JSON.parse(localStorage.getItem('detour.catchlights')||'{"masks":{}}');old.masks[cur]=M();localStorage.setItem('detour.catchlights',JSON.stringify(old));}catch(e){}}
+function snap(){hist.push(JSON.stringify(M().frames));if(hist.length>60)hist.shift();}
+$('undo').onclick=()=>{if(!hist.length)return;M().frames=JSON.parse(hist.pop());M().src=M().frames.map(()=>'hand');save();draw();};
+
+function pick(id){cur=id;hist=[];const m=M();setTimeout(fmBtn);$('mask').value=id;$('nf').value=m.sheet.n;$('kind').value=m.kind||'pulse';$('ne').value=String(m.eyes||2);$('col').value=m.color||'#ffffff';$('rad').value=m.r??2.4;$('spd').value=m.sp??1;
+ const i=new Image();i.onload=()=>{img=i;m.sheet.n=m.sheet.n||Math.round(i.width/(m.sheet.w*m.sheet.k));norm();build();};i.onerror=()=>status('✗ '+m.sheet.src);i.src=m.sheet.url||(IK+m.sheet.src);}
+function norm(){const m=M(),n=m.sheet.n;m.frames=m.frames||[];while(m.frames.length<n)m.frames.push([]);m.frames.length=n;m.src=m.src||m.frames.map(()=>'kept');while(m.src.length<n)m.src.push('kept');}
+$('file').onchange=e=>{const f=e.target.files[0];if(!f)return;const u=URL.createObjectURL(f),i=new Image();i.onload=()=>{
+  const n=+$('nf').value||8,id=f.name.replace(/\.[^.]+$/,'').replace(/^sprite-/,'');
+  DB.masks[id]={name:id,kind:$('kind').value,color:$('col').value,r:+$('rad').value,sp:+$('spd').value,sheet:{src:f.name,url:u,w:Math.round(i.width/n),h:i.height,k:1,n},frames:[],src:[]};
+  fillMasks();pick(id);};i.src=u;};
+$('nf').onchange=()=>{const m=M();if(!m)return;m.sheet.n=Math.max(1,+$('nf').value|0);if(m.sheet.url&&img)m.sheet.w=Math.round(img.width/m.sheet.n);norm();build();};
+for(const k of['kind','col','rad','spd','ne'])$(k).oninput=()=>{const m=M();if(!m)return;m.eyes=+$('ne').value;m.kind=$('kind').value;m.color=$('col').value;m.r=+$('rad').value;m.sp=+$('spd').value;save();};
+$('zoom').onclick=()=>{FULL=!FULL;build();};
+$('fm').onclick=()=>{const m=M();if(!m)return;m.model=m.model===false?true:false;fmBtn();save();};
+
+/* ---------- frame tiles ---------- */
+let tiles=[];
+function cell(f){const m=M(),{w,h,k}=m.sheet;return{sx:f*w*k,sy:0,sw:w*k,sh:h*k,w,h,k};}
+function view(f){/* the crop shown: around the face (the lights of this frame, else of the strip), or the whole cell */
+ const m=M(),{w,h}=m.sheet;if(FULL)return{x:0,y:0,s:w>h?w:h};
+ let P=m.frames[f];if(!P.length)P=m.frames.flat();if(!P.length)return{x:0,y:0,s:Math.max(w,h)};
+ const cx=P.reduce((a,p)=>a+p[0],0)/P.length,cy=P.reduce((a,p)=>a+p[1],0)/P.length,s=Math.min(Math.max(w,h),Math.max(44,1.9*(Math.max(...P.map(p=>p[0]))-Math.min(...P.map(p=>p[0])))+30));
+ return{x:Math.max(0,Math.min(w-s,cx-s/2)),y:Math.max(0,Math.min(h-s,cy-s*.45)),s};}
+function build(){const g=$('grid');g.innerHTML='';tiles=[];const n=M().sheet.n;
+ for(let f=0;f<n;f++){const d=document.createElement('div');d.className='tile';const c=document.createElement('canvas');c.width=c.height=300;
+  const a=document.createElement('span');a.className='tag';a.textContent=String(f);const b=document.createElement('span');b.className='src';
+  d.append(c,a,b);g.appendChild(d);const T={c,b,f,v:null};tiles.push(T);hook(T);}
+ draw();}
+function draw(){if(!img||!M())return;const m=M();for(const T of tiles){const{c,f}=T,x=c.getContext('2d'),C=cell(f),v=T.v=view(f),Z=c.width/v.s;
+  x.fillStyle='#1a1820';x.fillRect(0,0,c.width,c.height);x.imageSmoothingQuality='high';
+  x.drawImage(img,C.sx+v.x*C.k,C.sy+v.y*C.k,v.s*C.k,v.s*C.k,0,0,c.width,c.height);
+  for(const[px,py]of m.frames[f]){const X=(px-v.x)*Z,Y=(py-v.y)*Z;x.save();x.globalCompositeOperation='lighter';glow(x,X,Y,(m.r||2.4)*1.6*Z,m.color||'#fff',.6);x.restore();
+   x.strokeStyle='#fff';x.lineWidth=1.5;x.beginPath();x.arc(X,Y,7,0,7);x.stroke();x.strokeStyle='#000';x.lineWidth=1;x.beginPath();x.arc(X,Y,8.5,0,7);x.stroke();}
+  T.b.textContent=m.frames[f].length?(t('src')[m.src[f]]||''):(t('src')[m.src[f]]||t('none'));}}
+function hexA(h,a){const n=parseInt(h.slice(1),16);return`rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;}
+function glow(x,X,Y,r,c,a){const g=x.createRadialGradient(X,Y,0,X,Y,r);g.addColorStop(0,hexA(c,a));g.addColorStop(.4,hexA(c,a*.45));g.addColorStop(1,hexA(c,0));x.fillStyle=g;x.beginPath();x.arc(X,Y,r,0,7);x.fill();}
+
+/* click: add · drag: move · double-click or long-press: remove */
+function hook(T){const c=T.c;let drag=-1,moved=false,lp=0,down=null;
+ const at=e=>{const r=c.getBoundingClientRect(),Z=c.width/T.v.s;return[T.v.x+(e.clientX-r.left)*(c.width/r.width)/Z,T.v.y+(e.clientY-r.top)*(c.height/r.height)/Z];};
+ const hit=p=>{const Z=c.width/T.v.s,P=M().frames[T.f];let k=-1,b=1e9;P.forEach((q,i)=>{const d=Math.hypot(q[0]-p[0],q[1]-p[1])*Z;if(d<16&&d<b){b=d;k=i;}});return k;};
+ c.addEventListener('pointerdown',e=>{c.setPointerCapture(e.pointerId);const p=at(e);drag=hit(p);moved=false;down=p;
+  if(drag>=0){snap();lp=setTimeout(()=>{if(!moved){M().frames[T.f].splice(drag,1);M().src[T.f]='hand';drag=-1;save();draw();}},600);}});
+ c.addEventListener('pointermove',e=>{if(drag<0)return;const p=at(e);if(Math.hypot(p[0]-down[0],p[1]-down[1])*c.width/T.v.s>3){moved=true;clearTimeout(lp);}
+  if(moved){M().frames[T.f][drag]=[+p[0].toFixed(1),+p[1].toFixed(1)];M().src[T.f]='hand';draw();}});
+ c.addEventListener('pointerup',e=>{clearTimeout(lp);if(drag<0&&down){snap();M().frames[T.f].push([+down[0].toFixed(1),+down[1].toFixed(1)]);M().src[T.f]='hand';}drag=-1;down=null;save();draw();});
+ c.addEventListener('dblclick',e=>{const k=hit(at(e));if(k>=0){M().frames[T.f].splice(k,1);M().src[T.f]='hand';save();draw();}});}
+
+/* ---------- 1. the face model: MediaPipe Face Mesh with iris refinement ---------- */
+const MP='https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/';
+let FM=null;
+function loadScript(u){return new Promise((ok,ko)=>{const s=document.createElement('script');s.src=u;s.crossOrigin='anonymous';s.onload=ok;s.onerror=ko;document.head.appendChild(s);});}
+async function model(){if(FM)return FM;status(t('loading'));await loadScript(MP+'face_mesh.js');
+ const fm=new FaceMesh({locateFile:f=>MP+f});fm.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:.3,minTrackingConfidence:.3,staticImageMode:true});await fm.initialize();return FM=fm;}
+const EYE={l:{iris:468,up:159,lo:145,a:33,b:133},r:{iris:473,up:386,lo:374,a:362,b:263}};
+async function face(f){/* tries a few scales and the mirror image; returns [{p:[x,y],open}] in cell units */
+ const C=cell(f);
+ for(const Z of[1.6,2.4,1.1])for(const flip of[false,true]){
+  const cv=document.createElement('canvas'),pad=100;cv.width=Math.round(C.sw*Z)+2*pad;cv.height=Math.round(C.sh*Z)+2*pad;
+  const x=cv.getContext('2d');x.fillStyle='#808080';x.fillRect(0,0,cv.width,cv.height);
+  if(flip){x.translate(cv.width,0);x.scale(-1,1);}x.drawImage(img,C.sx,C.sy,C.sw,C.sh,pad,pad,C.sw*Z,C.sh*Z);
+  const res=await new Promise(r=>{FM.onResults(r);FM.send({image:cv});});const L=res.multiFaceLandmarks&&res.multiFaceLandmarks[0];if(!L)continue;
+  const P=i=>{let X=L[i].x*cv.width;if(flip)X=cv.width-X;return[(X-pad)/Z/C.k,(L[i].y*cv.height-pad)/Z/C.k];},d=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+  return Object.values(EYE).map(e=>({p:P(e.iris),open:d(P(e.up),P(e.lo))/Math.max(1e-3,d(P(e.a),P(e.b)))}));}
+ return null;}
+
+/* ---------- 2. following the eyes from frame to frame: template matching (normalised cross-correlation) ---------- */
+let GR=null;
+function grey(){const m=M(),c=document.createElement('canvas'),W=m.sheet.w*m.sheet.n,H=m.sheet.h;c.width=W;c.height=H;const x=c.getContext('2d',{willReadFrequently:true});
+ x.drawImage(img,0,0,img.width,img.height,0,0,W,H);const d=x.getImageData(0,0,W,H).data,g=new Float32Array(W*H);for(let i=0;i<W*H;i++)g[i]=(d[4*i]*.3+d[4*i+1]*.59+d[4*i+2]*.11)*(d[4*i+3]/255);GR={g,W,H};}
+function follow(fa,p,fb){/* where the patch around p in frame fa lands in frame fb */
+ const{g,W,H}=GR,w=M().sheet.w,R=5,S=Math.round(Math.max(8,w*.12));const ax=Math.round(fa*w+p[0]),ay=Math.round(p[1]);
+ const tp=[];for(let j=-R;j<=R;j++)for(let i=-R;i<=R;i++){const X=ax+i,Y=ay+j;tp.push(X>=0&&Y>=0&&X<W&&Y<H?g[Y*W+X]:0);}
+ const mt=tp.reduce((a,b)=>a+b,0)/tp.length,st=Math.sqrt(tp.reduce((a,b)=>a+(b-mt)**2,0))||1;
+ let best=-2,bx=0,by=0;
+ for(let dy=-S;dy<=S;dy++)for(let dx=-S;dx<=S;dx++){const cx=Math.round(fb*w+p[0])+dx,cy=ay+dy;let s=0,s2=0,sc=0,k=0;
+  for(let j=-R;j<=R;j++)for(let i=-R;i<=R;i++,k++){const X=cx+i,Y=cy+j;const v=X>=fb*w&&X<(fb+1)*w&&Y>=0&&Y<H?g[Y*W+X]:0;s+=v;s2+=v*v;sc+=v*tp[k];}
+  const n=tp.length,mv=s/n,sv=Math.sqrt(Math.max(1e-6,s2-n*mv*mv)),ncc=(sc-n*mv*mt)/(sv*st);if(ncc>best){best=ncc;bx=dx;by=dy;}}
+ return best>.55?[+(p[0]+bx).toFixed(1),+(p[1]+by).toFixed(1)]:null;}
+function fillByTracking(only){/* frames still empty (or all, when asked) take the points of the nearest frame that has some */
+ grey();const m=M(),n=m.sheet.n;let c=0;const ref=[...Array(n).keys()].filter(f=>m.frames[f].length&&m.src[f]!=='track');if(!ref.length)return-1;
+ for(let f=0;f<n;f++){if(m.frames[f].length&&!only)continue;if(only&&ref.includes(f))continue;if(m.src[f]==='dark')continue;
+  const r=ref.reduce((a,b)=>Math.abs(b-f)<Math.abs(a-f)?b:a);const P=m.frames[r].map(p=>follow(r,p,f)).filter(Boolean);if(P.length){m.frames[f]=P;m.src[f]='track';c++;}}
+ return c;}
+
+$('detect').onclick=async()=>{const m=M();if(!m||!img)return;snap();$('detect').disabled=true;let A=0,B=0,D=0;
+ if(m.model===false){const c=fillByTracking(false);status(c<0?t('need'):t('tracked')(c));$('detect').disabled=false;save();draw();return;}
+ try{await model();
+  const prev=JSON.parse(JSON.stringify(m.frames)),R=[];
+  for(let f=0;f<m.sheet.n;f++){status(t('run')(f,m.sheet.n));R.push(await face(f));}
+  A=R.filter(Boolean).length;
+  if(A<m.sheet.n/2){/* a beak, a muzzle, a helmet: the face model is guessing; keep the artist's points and follow them */
+   m.frames=prev;m.src=m.frames.map(p=>p.length?'kept':'dark');A=0;}
+  else{/* shut lids: the opening of the eye, measured against this character's usual opening */
+   const mean=r=>r.reduce((a,e)=>a+e.open,0)/r.length,ms=R.filter(Boolean).map(mean).sort((a,b)=>a-b),med=ms[ms.length>>1],lim=Math.max(.1,.55*med);
+   R.forEach((r,f)=>{if(!r){m.frames[f]=[];m.src[f]='miss';return;}
+    if(mean(r)<lim){m.frames[f]=[];m.src[f]='dark';return;}
+    let P=r.filter(e=>e.open>=.08).map(e=>[+e.p[0].toFixed(1),+e.p[1].toFixed(1)]);
+    if(m.eyes===1&&P.length>1){/* one lit eye (an odd eye): the one nearest to where it was */const ref=prev[f]&&prev[f][0]||prev.flat()[0];if(ref)P=[P.reduce((a,b)=>Math.hypot(b[0]-ref[0],b[1]-ref[1])<Math.hypot(a[0]-ref[0],a[1]-ref[1])?b:a)];else P=P.slice(0,1);}
+    m.frames[f]=P;m.src[f]='face';});}
+  B=fillByTracking(false);if(B<0)B=0;D=m.frames.filter(p=>!p.length).length;status(A?t('done')(A,B,D):t('unsure')(B));}
+ catch(e){status(t('nomodel'));}
+ $('detect').disabled=false;save();build();};
+$('track').onclick=()=>{if(!M()||!img)return;snap();const c=fillByTracking(true);status(c<0?t('need'):t('tracked')(c));save();draw();};
+
+/* ---------- export ---------- */
+function json(){const out={version:1,masks:{}};for(const id in DB.masks){const m=DB.masks[id],s={...m.sheet};delete s.url;out.masks[id]={name:m.name,model:m.model!==false,eyes:m.eyes||2,kind:m.kind,color:m.color,r:m.r,sp:m.sp,sheet:s,frames:m.frames};}return JSON.stringify(out,null,1);}
+$('dl').onclick=()=>{const b=new Blob([json()],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='catchlights.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);};
+$('copy').onclick=async()=>{try{await navigator.clipboard.writeText(json());status(t('copied'));}catch(e){}};
+
+/* ---------- live preview, as in Insert Koin ---------- */
+(function loop(ts){const c=$('prev'),x=c.getContext('2d');x.fillStyle='#1a1820';x.fillRect(0,0,c.width,c.height);
+ const m=M();if(img&&m){const n=m.sheet.n,f=Math.floor(ts/900)%n,C=cell(f),Z=Math.min(c.width/m.sheet.w,c.height/m.sheet.h),tt=ts/1000;
+  x.drawImage(img,C.sx,C.sy,C.sw,C.sh,(c.width-m.sheet.w*Z)/2,(c.height-m.sheet.h*Z)/2,m.sheet.w*Z,m.sheet.h*Z);
+  const ox=(c.width-m.sheet.w*Z)/2,oy=(c.height-m.sheet.h*Z)/2;x.save();x.globalCompositeOperation='lighter';
+  if(m.kind==='eyes'){if(Math.sin(tt*.9)>.55)for(const[a,b]of m.frames[f])glow(x,ox+a*Z,oy+b*Z,3*Z,m.color,.55);}
+  else for(const[a,b]of m.frames[f]){const k=Math.sin(tt*(m.sp||1)*3);glow(x,ox+a*Z,oy+b*Z,(m.r||2.4)*(1.4+.3*k)*Z,m.color,.35+.35*k);}
+  x.restore();}
+ requestAnimationFrame(loop);})(0);
+boot();
+</script>
+</body>
+</html>
