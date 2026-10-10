@@ -238,13 +238,15 @@ def keep_figure(m,min_frac=.02):
     if n<=1:return m.astype(np.uint8)
     big=st[1:,4].max();keep=[i for i in range(1,n) if st[i,4]>=max(big*.08,m.size*min_frac*.1)]
     return np.isin(l,keep).astype(np.uint8)
-def fill_holes(m,z,k):
-    """holes inside the figure are filled, unless they look like the backdrop (a pocket under an arm)"""
+def fill_holes(m,z,k,J=None):
+    """holes inside the figure are filled, unless they look like the backdrop (a pocket under an arm), or both neural
+    judges see backdrop there (wall between a bull's legs, a little darker than the wall above)"""
     inv=(1-m).astype(np.uint8);n,l,st,_=cv2.connectedComponentsWithStats(inv,connectivity=4);h,w=m.shape;out=m.copy()
     for i in range(1,n):
         x,y,ww,hh,ar=st[i]
         if x==0 or y==0 or x+ww==w or y+hh==h:continue
         sel=l==i
+        if J is not None and ar>=30 and np.median(np.maximum(J['u'],J['s'])[sel])<.3 and np.median(z[sel])<4*k:continue
         if np.median(z[sel])>k or ar<30:out[sel]=1
     return out
 def decide(J,k=3.5):
@@ -351,7 +353,7 @@ def run(src,out,rows=2,cols=4,FH=472,pad=10,proof=None,report=None,maps=None,ver
         cons=acc/cnt
         split=(v==1)|(v==2)  # one judge against two
         m=M[i].copy();flip=np.zeros_like(split)  # the others are witnesses, never judges: an effort frame may differ on purpose
-        m=keep_figure(m);m=fill_holes(m,z,3.5);m=open2(m)
+        m=keep_figure(m);m=fill_holes(m,z,3.5,J[i]);m=open2(m)
         M[i]=m
         # what remains doubtful: three-way splits the others could not settle, and lone disagreements with the others
         lone=((m==1)&(cons<.1))|((m==0)&(cons>.9));lone=cv2.morphologyEx(lone.astype(np.uint8),cv2.MORPH_OPEN,np.ones((5,5),np.uint8))
