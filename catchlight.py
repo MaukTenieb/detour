@@ -33,7 +33,9 @@ def landmarker():
     import mediapipe as mp
     if hasattr(mp, 'solutions'):
         fm = mp.solutions.face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1, refine_landmarks=True, min_detection_confidence=.3)
-        f = lambda rgb: (fm.process(np.ascontiguousarray(rgb)).multi_face_landmarks or [None])[0] and [fm.process(np.ascontiguousarray(rgb)).multi_face_landmarks[0].landmark]
+        def f(rgb):
+            r = fm.process(np.ascontiguousarray(rgb)).multi_face_landmarks
+            return [r[0].landmark] if r else None
         f.close = fm.close
         return f
     from mediapipe.tasks import python as mpt

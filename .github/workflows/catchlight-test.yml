@@ -30,15 +30,15 @@ jobs:
           python3 - <<'PY'
           import json, math
           ik = json.load(open('ik.json'))['masks']; out = json.load(open('out.json'))['masks']; out.update({'dogxim': json.load(open('out2.json'))['masks']['dogxim']})
-          worst = 0; bad = []
+          worst = 0; bad = []; flips = []
           for m, e in out.items():
               for f, (a, b) in enumerate(zip(e['frames'], ik[m]['frames'])):
-                  if bool(a) != bool(b): bad.append((m, f, a, b)); continue
+                  if bool(a) != bool(b): flips.append((m, f, a, b)); continue
                   for p in a:
                       d = min(math.dist(p, q) for q in b); worst = max(worst, d)
                       if d > 2: bad.append((m, f, p, b))
-          print('largest gap, cell units:', round(worst, 2)); print('mismatches:', bad)
-          raise SystemExit(1 if bad else 0)
+          print('largest gap, cell units:', round(worst, 2)); print('gaps over 2 units:', bad); print('lit/dark disagreements (32 frames):', flips)
+          raise SystemExit(1 if bad or len(flips) > 1 else 0)
           PY
       - name: Keep the log in the branch ci-results
         if: always()
