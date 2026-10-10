@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Detour: cut a sheet of eight portraits (the same figure, eight expressions) into a clean sprite strip.
 
-Three judges look at every panel:
-  1. the backdrop judge: a smooth model of the painted backdrop, removed where it is reached from the panel's edges;
-  2. two neural judges (U2-Net, IS-Net), run offline through ONNX.
+Three estimates of the figure for every panel:
+  1. the backdrop model: a smooth model of the painted backdrop, removed where it is reached from the panel's edges;
+  2. two matting networks (U2-Net, IS-Net), run offline through ONNX.
 Where they agree, it is settled; where they disagree, the majority decides, and the other seven panels, aligned on
 this one, settle what is left. Edges get a real alpha (foreground and backdrop colours estimated locally) and their
 colour is freed from the backdrop's. Every frame is scaled on the head and shoulders, top of the head on one line.

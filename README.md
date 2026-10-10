@@ -10,12 +10,12 @@ python3 detour.py sheet.jpg -o sprite.webp --glow 230,245,255,.55,5    # optiona
 
 The two models (U²-Net, IS-Net, about 350 MB) are downloaded once to `~/.cache/detour`. Everything then runs offline, on the CPU, in about 20 s per sheet.
 
-The story of the method, with its failures and fixes: [Detour, three judges for one outline](https://mauktenieb.github.io/insertkoin/notes/detour.html) · [Catchlight, lights in the eyes of eighteen Masks](https://mauktenieb.github.io/insertkoin/notes/catchlight.html).
+The story of the method, with its failures and fixes: [Detour: cutting Midjourney portrait sheets into sprite strips](https://mauktenieb.github.io/insertkoin/notes/detour.html) · [Catchlight: placing eye lights on sprite frames](https://mauktenieb.github.io/insertkoin/notes/catchlight.html).
 
 ## How it works
 
 - **Panels found by themselves:** gutters of any colour or none, drawn frames stepped over, and a table in front of the figure cut away at its top edge.
-- **Three judges:** a smooth backdrop model, removed only where it is reached from the edges, plus two neural mattes. Two against one decides.
+- **Three estimates of the figure:** two matting networks and a smooth model of the backdrop, which marks backdrop only where it reaches the panel edges. A pixel stays in the figure when two of the three keep it.
 - **What each kind of judge misses, corrected by the other:**
   - The neural mattes are trained on people. Drawn accessories they drop (wings, a cloud for a head, a receiver) come back when the backdrop model sees texture.
   - Plain, smooth backdrop shut in under an arm or between legs goes, even when every network keeps it.
