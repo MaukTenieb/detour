@@ -39,6 +39,10 @@ The two models (U²-Net, IS-Net, about 350 MB) are downloaded once to `~/.cache/
 Artist: https://github.com/MaukTenieb · Music and sales: https://mauktenieb.bandcamp.com · Journal: https://korhogo.substack.com · Bio: https://orcid.org/0009-0007-9096-8267
 <!-- network:end -->
 
+## Blind test
+
+`blind-test.png`: a sheet Detour had never seen (a lighthouse keeper, made for the test), cut with no setting. On a dark and a white background. The hands resting on the table stay; the table goes.
+
 ## Rights
 
 Copyright © Mauk Tenieb & Korhogo. All rights reserved. The source code is published for reading, reflections, additions, requests, etc.

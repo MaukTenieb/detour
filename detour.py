@@ -50,7 +50,7 @@ def _table_lines(P):
             gx=np.abs(np.diff(P[y+2:h],axis=1)).sum(-1);out.append((y,float((gx<6).mean())))
         if frac[y-1]>.5:last=y
     return out
-def find_panels(im,rows=2,cols=4):
+def find_panels(im,rows=2,cols=4,with_tables=False):
     L=lab(im);H,W=L.shape[:2]
     X=_cuts(_lines(L,1),cols,W);Y=_cuts(_lines(L,0),rows,H)
     B=[_trim(L,(y,x)) for y in Y for x in X]
@@ -62,6 +62,39 @@ def find_panels(im,rows=2,cols=4):
         for y,flat in C[i]:
             if flat>=.8 or (flat>=.6 and any(abs(y-yo)<=3 for yo,_ in others)):cut=y;break
         out.append(((y0,y0+cut-3),(x0,x1)) if cut else ((y0,y1),(x0,x1)))
+    if with_tables:  # the whole panel, and where its table starts (None: no table)
+        return [((b[0][0],B[i][0][1]),b[1]) for i,b in enumerate(out)],[(o[0][1]-o[0][0]+3 if o[0][1]!=B[i][0][1] else None) for i,o in enumerate(out)]
+    return out
+def table_hands(p,m,cut,J=None,k=3.5):
+    """Below the table's top edge only what rests on it stays: pixels unlike the wood (measured just under the edge, column
+    by column) and joined to the figure above the edge — hands and sleeves on the table, not the table."""
+    h,w=m.shape;L=lab(p)
+    if cut is None or cut>=h-2:return m
+    band=L[cut+2:min(h,cut+8)]
+    if not band.size:return m
+    wood=np.array([np.median(band[:,max(0,x-20):x+21].reshape(-1,3),axis=0) for x in range(w)])
+    d=np.sqrt((((L[cut:]-wood[None])**2)*np.array([.6,1.6,1.6])).sum(-1))
+    out=m.copy();out[cut:]=0
+    cand=np.zeros((h,w),np.uint8);cand[cut:]=(d>14)&(m[cut:]>0)
+    cand=open2(cand)
+    above=np.zeros((h,w),np.uint8);above[:cut]=m[:cut];seedrow=above[cut-1]>0
+    n,l=cv2.connectedComponents(cand,connectivity=8)
+    for k in range(1,n):
+        sel=l==k
+        if (sel[cut]&seedrow).any() or (sel[cut+1]&seedrow).any():out[sel]=1
+    if J is not None:  # the table edge is where the backdrop shows through, between the arms and the body: open it like a bottom edge
+        L0=J['lab'][...,0];lap=np.abs(cv2.Laplacian(cv2.GaussianBlur(L0,(0,0),.8),cv2.CV_32F))
+        wall=(out==0);wall[cut:]=False
+        flat=max(.6,3*float(np.median(lap[wall]))) if wall.any() else 1.0
+        bk=(((J['z']<k)|J['sh'])&(out==1)).astype(np.uint8);bk[cut:]=0;bk=open2(bk)
+        n,l,st,_=cv2.connectedComponentsWithStats(bk,connectivity=4)
+        for i in range(1,n):
+            x,y,ww,hh,ar=st[i]
+            if ar<h*w*.002 or y+hh<cut-3:continue
+            sel=l==i;core=cv2.erode(sel.astype(np.uint8),K,iterations=2)>0
+            if not core.any():continue
+            # only a smooth wall the networks are not sure of: a grey suit has weave and folds, and both networks hold it
+            if np.median(lap[core])<flat and np.median(np.minimum(J['u'],J['s'])[core])<.6:out[sel]=0
     return out
 
 # ---------------------------------------------------------------- judges
@@ -235,9 +268,10 @@ def decide(J,k=3.5):
         sel=l==i;core=cv2.erode(sel.astype(np.uint8),np.ones((3,3),np.uint8))>0
         if core.sum()>=10 and np.median(lap[core])<2*flat:m[sel]=0
     return m
-def judge_panel(p,maps=None):
+def judge_panel(p,maps=None,cut=None):
     u=neural(p,'u2net') if maps is None else maps[0];s=neural(p,'isnet-general-use') if maps is None else maps[1]
     sure=cv2.erode(((u<.1)&(s<.1)).astype(np.uint8),np.ones((5,5),np.uint8))>0
+    if cut:sure[max(0,cut-2):]=False  # the table is not the wall: the backdrop model is fitted above it
     c,z,bg=judge_backdrop(p,sure)
     votes=(u>.5).astype(np.float32)+(s>.5)+c
     L=lab(p)
@@ -285,9 +319,9 @@ def shoulders(m,t):
 def run(src,out,rows=2,cols=4,FH=472,pad=10,proof=None,report=None,maps=None,verbose=True,glow=None):
     im=cv2.imread(src,cv2.IMREAD_COLOR)
     if im is None:raise SystemExit(f'cannot read {src}')
-    boxes=find_panels(im,rows,cols);P=[im[y0:y1,x0:x1].copy() for (y0,y1),(x0,x1) in boxes];N=len(P)
-    J=[judge_panel(p,None if maps is None else maps[i]) for i,p in enumerate(P)]
-    M=[decide(j) for j in J]
+    boxes,cuts=find_panels(im,rows,cols,with_tables=True);P=[im[y0:y1,x0:x1].copy() for (y0,y1),(x0,x1) in boxes];N=len(P)
+    J=[judge_panel(p,None if maps is None else maps[i],cuts[i]) for i,p in enumerate(P)]
+    M=[table_hands(P[i],decide(j),cuts[i],j) for i,j in enumerate(J)]
     # the other panels, aligned on this one, settle what the three judges left uncertain (2 against 1)
     hb=[headbox(m) for m in M];ref=[]
     for i in range(N):
@@ -313,7 +347,7 @@ def run(src,out,rows=2,cols=4,FH=472,pad=10,proof=None,report=None,maps=None,ver
         M[i]=refine_outline(M[i],J[i]);M[i],pk=remove_pockets(M[i],J[i]);doubts[i]['pockets_px']=pk;A,C=alpha_matte(p,M[i],J[i]);M[i]=(M[i]>0)&(A>=.5);M[i]=keep_figure(M[i].astype(np.uint8));RGBA.append(np.dstack([C,(A*255).astype(np.uint8)]))  # the shape follows the matte: a rim pixel that is mostly backdrop is outside
     # one scale for all, corrected per row on head and shoulders, the top of the head on one line
     hb=[headbox(r[...,3]/255) for r in RGBA];sw=[shoulders(r[...,3]/255,hb[i][0]) for i,r in enumerate(RGBA)]
-    t0=hb[0][0];ph=P[0].shape[0];s0=(FH-14)/(ph-t0);T=[]
+    t0=hb[0][0];ph=(cuts[0]+4) if cuts[0] else P[0].shape[0];s0=(FH-14)/(ph-t0);T=[]
     # the size of each panel relative to the first, found by matching the silhouette of the head (its top part, down to the
     # shoulders) over a range of scales and small shifts; one value per row (the median), since a sheet's rows are drawn as sets
     ks=[match_scale(M[0],hb[0],M[i],hb[i]) for i in range(N)]
