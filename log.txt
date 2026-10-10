@@ -1,0 +1,35 @@
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+W0000 00:00:1791641652.539824    2491 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1791641652.552181    2491 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/google/protobuf/symbol_database.py:55: UserWarning: SymbolDatabase.GetPrototype() is deprecated. Please use message_factory.GetMessageClass() instead. SymbolDatabase.GetPrototype() will be removed soon.
+  warnings.warn('SymbolDatabase.GetPrototype() is deprecated. Please '
+openings [[np.float64(0.299), np.float64(0.261)], [np.float64(0.042), np.float64(0.06)], [np.float64(0.345), np.float64(0.422)], [np.float64(0.356), np.float64(0.48)], [np.float64(0.223), np.float64(0.27)], [np.float64(0.205), np.float64(0.176)], [np.float64(0.364), np.float64(0.294)], [np.float64(0.42), np.float64(0.407)]]
+auvergne face dark face face face face face face
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+W0000 00:00:1791641653.679466    2523 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1791641653.688702    2524 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/google/protobuf/symbol_database.py:55: UserWarning: SymbolDatabase.GetPrototype() is deprecated. Please use message_factory.GetMessageClass() instead. SymbolDatabase.GetPrototype() will be removed soon.
+  warnings.warn('SymbolDatabase.GetPrototype() is deprecated. Please '
+dogxim face dark face face face face face face
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+W0000 00:00:1791641654.627320    2550 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1791641654.640460    2552 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/google/protobuf/symbol_database.py:55: UserWarning: SymbolDatabase.GetPrototype() is deprecated. Please use message_factory.GetMessageClass() instead. SymbolDatabase.GetPrototype() will be removed soon.
+  warnings.warn('SymbolDatabase.GetPrototype() is deprecated. Please '
+openings [[np.float64(0.291), np.float64(0.384)], [np.float64(0.089), np.float64(0.069)], [np.float64(0.336), np.float64(0.132)], [np.float64(0.304), np.float64(0.381)], [np.float64(0.354), np.float64(0.254)], [np.float64(0.264), np.float64(0.184)], [np.float64(0.305), np.float64(0.197)], [np.float64(0.321), np.float64(0.434)]]
+c7h5n3o6 face dark face face face face face face
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+W0000 00:00:1791641655.579838    2580 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1791641655.588939    2581 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+/opt/hostedtoolcache/Python/3.11.17/x64/lib/python3.11/site-packages/google/protobuf/symbol_database.py:55: UserWarning: SymbolDatabase.GetPrototype() is deprecated. Please use message_factory.GetMessageClass() instead. SymbolDatabase.GetPrototype() will be removed soon.
+  warnings.warn('SymbolDatabase.GetPrototype() is deprecated. Please '
+openings [[np.float64(0.318), np.float64(0.488)], [np.float64(0.109), np.float64(0.279)], [np.float64(0.147), np.float64(0.385)], [np.float64(0.513), np.float64(0.258)], [np.float64(0.317), np.float64(0.285)], [np.float64(0.263), np.float64(0.396)], [np.float64(0.385), np.float64(0.42)], [np.float64(0.358), np.float64(0.329)]]
+cadaver_synod face face face face face face face face
+wrote auvergne.atlas.json auvergne.tres auvergne.frames.json
+largest gap, cell units: 1.8
+gaps over 2 units: []
+lit/dark disagreements (32 frames): [('cadaver_synod', 1, [[66.2, 24.2], [78.3, 24.2]], [])]

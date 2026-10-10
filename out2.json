@@ -1,0 +1,791 @@
+{
+ "version": 1,
+ "masks": {
+  "poisoned_well": {
+   "name": "Poisoned Well",
+   "kind": "pulse",
+   "color": "#ffffff",
+   "r": 2,
+   "sp": 1,
+   "sheet": {
+    "src": "sprite-poisoned_well.webp",
+    "w": 116,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ],
+   "model": true,
+   "eyes": 2
+  },
+  "maiden_call": {
+   "name": "Maiden Call",
+   "kind": "pulse",
+   "color": "#ffffff",
+   "r": 2,
+   "sp": 1,
+   "sheet": {
+    "src": "sprite-maiden_call.webp",
+    "w": 114,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ],
+   "model": true,
+   "eyes": 2
+  },
+  "hatra_loves": {
+   "name": "Hátra Lövés",
+   "kind": "pulse",
+   "color": "#ffffff",
+   "r": 2,
+   "sp": 1,
+   "sheet": {
+    "src": "sprite-hatra_loves.webp",
+    "w": 137,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ],
+   "model": true,
+   "eyes": 2
+  },
+  "truce": {
+   "name": "Truce",
+   "kind": "pulse",
+   "color": "#ffffff",
+   "r": 2,
+   "sp": 1,
+   "sheet": {
+    "src": "sprite-truce.webp",
+    "w": 166,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ],
+   "model": true,
+   "eyes": 2
+  },
+  "silent_pact": {
+   "name": "Silent Pact",
+   "kind": "pulse",
+   "color": "#ffffff",
+   "r": 2,
+   "sp": 1,
+   "sheet": {
+    "src": "sprite-silent_pact.webp",
+    "w": 134,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ],
+   "model": false,
+   "eyes": 2
+  },
+  "tsui_pen": {
+   "name": "Ts'ui Pên",
+   "kind": "pulse",
+   "color": "#ffffff",
+   "r": 2,
+   "sp": 1,
+   "sheet": {
+    "src": "sprite-tsui_pen.webp",
+    "w": 140,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ],
+   "model": true,
+   "eyes": 2
+  },
+  "plague_of_justinian": {
+   "name": "Plague of Justinian",
+   "kind": "pulse",
+   "color": "#ffffff",
+   "r": 2,
+   "sp": 1,
+   "sheet": {
+    "src": "sprite-plague_of_justinian.webp",
+    "w": 118,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ],
+   "model": false,
+   "eyes": 2
+  },
+  "honey_buzzard": {
+   "name": "Honey Buzzard",
+   "kind": "pulse",
+   "color": "#ff3030",
+   "r": 1.8,
+   "sp": 0.7,
+   "sheet": {
+    "src": "sprite-honey_buzzard.webp",
+    "w": 128,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [
+     [
+      58,
+      10.5
+     ]
+    ],
+    [],
+    [],
+    [
+     [
+      68.6,
+      10.9
+     ]
+    ],
+    [
+     [
+      57.3,
+      9.2
+     ]
+    ],
+    [
+     [
+      63.8,
+      16.1
+     ]
+    ],
+    [
+     [
+      65,
+      19.3
+     ]
+    ],
+    [
+     [
+      60.2,
+      13
+     ]
+    ]
+   ],
+   "model": false,
+   "eyes": 1
+  },
+  "c7h5n3o6": {
+   "name": "C7H5N3O6",
+   "kind": "pulse",
+   "color": "#9fe8ff",
+   "r": 2,
+   "sp": 0.9,
+   "sheet": {
+    "src": "sprite-c7h5n3o6.webp",
+    "w": 151,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [
+     [
+      77.7,
+      25.8
+     ],
+     [
+      64.5,
+      26.9
+     ]
+    ],
+    [],
+    [
+     [
+      59.5,
+      25.3
+     ],
+     [
+      70.3,
+      26.2
+     ]
+    ],
+    [
+     [
+      91.9,
+      24.9
+     ],
+     [
+      82.2,
+      24.8
+     ]
+    ],
+    [
+     [
+      64.2,
+      28.1
+     ],
+     [
+      79.7,
+      27.5
+     ]
+    ],
+    [
+     [
+      63.8,
+      29.2
+     ],
+     [
+      76.5,
+      28.7
+     ]
+    ],
+    [
+     [
+      64.8,
+      31.8
+     ],
+     [
+      78.4,
+      31.6
+     ]
+    ],
+    [
+     [
+      64,
+      27.5
+     ],
+     [
+      78.4,
+      26.6
+     ]
+    ]
+   ],
+   "model": true,
+   "eyes": 2
+  },
+  "dogxim": {
+   "name": "dogXim",
+   "kind": "pulse",
+   "color": "#3d7bff",
+   "r": 2,
+   "sp": 0.8,
+   "sheet": {
+    "src": "sprite-dogxim.webp",
+    "w": 130,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [
+     [
+      55.6,
+      33.5
+     ]
+    ],
+    [],
+    [
+     [
+      44.9,
+      32.4
+     ]
+    ],
+    [
+     [
+      70.9,
+      32.2
+     ]
+    ],
+    [
+     [
+      56.2,
+      36.5
+     ]
+    ],
+    [
+     [
+      56.7,
+      36.5
+     ]
+    ],
+    [
+     [
+      57.6,
+      39.5
+     ]
+    ],
+    [
+     [
+      56.8,
+      35.6
+     ]
+    ]
+   ],
+   "model": true,
+   "eyes": 1
+  },
+  "malika": {
+   "name": "Malika",
+   "kind": "pulse",
+   "color": "#ffffff",
+   "r": 2,
+   "sp": 1,
+   "sheet": {
+    "src": "sprite-malika.webp",
+    "w": 116,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ],
+   "model": true,
+   "eyes": 2
+  },
+  "grand_colonel": {
+   "name": "Grand Colonel",
+   "kind": "pulse",
+   "color": "#ffffff",
+   "r": 2,
+   "sp": 1,
+   "sheet": {
+    "src": "sprite-grand_colonel.webp",
+    "w": 177,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ],
+   "model": true,
+   "eyes": 2
+  },
+  "cadaver_synod": {
+   "name": "Cadaver Synod",
+   "kind": "eyes",
+   "color": "#ff3040",
+   "r": 3,
+   "sp": 1,
+   "sheet": {
+    "src": "sprite-cadaver_synod.webp",
+    "w": 137,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [
+     [
+      65.8,
+      23.5
+     ],
+     [
+      79,
+      23.1
+     ]
+    ],
+    [],
+    [
+     [
+      69.7,
+      23.9
+     ],
+     [
+      80.7,
+      23.6
+     ]
+    ],
+    [
+     [
+      60,
+      22.9
+     ],
+     [
+      73.6,
+      22.5
+     ]
+    ],
+    [
+     [
+      66.2,
+      25
+     ],
+     [
+      78.8,
+      24.6
+     ]
+    ],
+    [
+     [
+      64,
+      25.3
+     ],
+     [
+      77.3,
+      24.9
+     ]
+    ],
+    [
+     [
+      62.6,
+      27.8
+     ],
+     [
+      76.1,
+      27.1
+     ]
+    ],
+    [
+     [
+      62.5,
+      24.1
+     ],
+     [
+      77.6,
+      23.8
+     ]
+    ]
+   ],
+   "model": true,
+   "eyes": 2
+  },
+  "auvergne": {
+   "name": "Auvergne",
+   "kind": "pulse",
+   "color": "#7dff8a",
+   "r": 2.4,
+   "sp": 1.6,
+   "sheet": {
+    "src": "sprite-auvergne.webp",
+    "w": 122,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [
+     [
+      56.4,
+      25.7
+     ],
+     [
+      67.1,
+      25.5
+     ]
+    ],
+    [],
+    [
+     [
+      66.6,
+      23.5
+     ],
+     [
+      76.2,
+      23.5
+     ]
+    ],
+    [
+     [
+      67,
+      23.4
+     ],
+     [
+      75.6,
+      23.7
+     ]
+    ],
+    [
+     [
+      56.2,
+      25.8
+     ],
+     [
+      65.9,
+      25.3
+     ]
+    ],
+    [
+     [
+      56.7,
+      27
+     ],
+     [
+      65.9,
+      27.1
+     ]
+    ],
+    [
+     [
+      55.5,
+      30.5
+     ],
+     [
+      66.9,
+      30
+     ]
+    ],
+    [
+     [
+      55.2,
+      26.4
+     ],
+     [
+      67.5,
+      26.3
+     ]
+    ]
+   ],
+   "model": true,
+   "eyes": 2
+  },
+  "croisiere_noire": {
+   "name": "Croisière Noire",
+   "kind": "eyes",
+   "color": "#ffffff",
+   "r": 3,
+   "sp": 1,
+   "sheet": {
+    "src": "sprite-croisiere_noire.webp",
+    "w": 103,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [
+     [
+      39.4,
+      46.1
+     ],
+     [
+      65.2,
+      46.1
+     ]
+    ],
+    [
+     [
+      40.7,
+      46.3
+     ],
+     [
+      64.8,
+      45.5
+     ]
+    ],
+    [
+     [
+      63.5,
+      46.3
+     ]
+    ],
+    [
+     [
+      54.3,
+      45.5
+     ]
+    ],
+    [
+     [
+      38.3,
+      37.7
+     ],
+     [
+      64,
+      36.5
+     ]
+    ],
+    [
+     [
+      39.1,
+      45.3
+     ],
+     [
+      64.1,
+      45.3
+     ]
+    ],
+    [
+     [
+      38.5,
+      49.3
+     ],
+     [
+      66,
+      50.6
+     ]
+    ],
+    [
+     [
+      39.9,
+      32.5
+     ],
+     [
+      64.9,
+      32.5
+     ]
+    ]
+   ],
+   "model": false,
+   "eyes": 2
+  },
+  "naphta": {
+   "name": "Naphta",
+   "kind": "pulse",
+   "color": "#ffffff",
+   "r": 2,
+   "sp": 1,
+   "sheet": {
+    "src": "sprite-naphta.webp",
+    "w": 124,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ],
+   "model": true,
+   "eyes": 2
+  },
+  "aube": {
+   "name": "Aube",
+   "kind": "pulse",
+   "color": "#ffffff",
+   "r": 2,
+   "sp": 1,
+   "sheet": {
+    "src": "sprite-aube.webp",
+    "w": 132,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ],
+   "model": true,
+   "eyes": 2
+  },
+  "unkle_maukie": {
+   "name": "Unkle Maukie",
+   "kind": "pulse",
+   "color": "#ffffff",
+   "r": 2,
+   "sp": 1,
+   "sheet": {
+    "src": "sprite-unkle_maukie.webp",
+    "w": 145,
+    "h": 118,
+    "k": 4,
+    "n": 8
+   },
+   "frames": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+   ],
+   "model": true,
+   "eyes": 2
+  }
+ }
+}
