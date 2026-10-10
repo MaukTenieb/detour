@@ -1,0 +1,37 @@
+# Test of catchlight.py on real Insert Koin sprites: the lights it finds must sit within 2 cell units
+# of the lights Insert Koin uses (catchlights.json), and every shut-lid frame must stay dark.
+name: Catchlight test
+on:
+  push:
+    branches: [main]
+    paths: ['catchlight.py', 'export.py', '.github/workflows/catchlight-test.yml']
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install -q mediapipe opencv-python-headless numpy
+      - name: Run on four Masks
+        run: |
+          base=https://raw.githubusercontent.com/MaukTenieb/insertkoin/main
+          curl -sSLo ik.json $base/catchlights.json
+          for m in auvergne dogxim c7h5n3o6 cadaver_synod; do curl -sSLo sprite-$m.webp $base/sprite-$m.webp; done
+          python3 catchlight.py sprite-auvergne.webp --k 4 --name auvergne -o out.json
+          python3 catchlight.py sprite-dogxim.webp --k 4 --name dogxim --eyes 1 --ref ik.json -o out2.json
+          python3 catchlight.py sprite-c7h5n3o6.webp --k 4 --name c7h5n3o6 -o out.json --ref out.json
+          python3 catchlight.py sprite-cadaver_synod.webp --k 4 --name cadaver_synod -o out.json --ref out.json
+          python3 export.py sprite-auvergne.webp --name auvergne --out build
+          python3 - <<'PY'
+          import json, math
+          ik = json.load(open('ik.json'))['masks']; out = json.load(open('out.json'))['masks']; out.update({'dogxim': json.load(open('out2.json'))['masks']['dogxim']})
+          worst = 0; bad = []
+          for m, e in out.items():
+              for f, (a, b) in enumerate(zip(e['frames'], ik[m]['frames'])):
+                  if bool(a) != bool(b): bad.append((m, f, a, b)); continue
+                  for p in a:
+                      d = min(math.dist(p, q) for q in b); worst = max(worst, d)
+                      if d > 2: bad.append((m, f, p, b))
+          print('largest gap, cell units:', round(worst, 2)); print('mismatches:', bad)
+          raise SystemExit(1 if bad else 0)
+          PY
