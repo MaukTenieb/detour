@@ -32,9 +32,11 @@ def landmarker():
     from mediapipe.tasks import python as mpt
     from mediapipe.tasks.python import vision
     opts = vision.FaceLandmarkerOptions(base_options=mpt.BaseOptions(model_asset_path=model_path()), num_faces=1,
-                                        min_face_detection_confidence=.3, min_face_presence_confidence=.3)
+                                        min_face_detection_confidence=.15, min_face_presence_confidence=.15)
     lm = vision.FaceLandmarker.create_from_options(opts)
-    return lambda rgb: lm.detect(mp.Image(image_format=mp.ImageFormat.SRGB, data=np.ascontiguousarray(rgb))).face_landmarks
+    f = lambda rgb: lm.detect(mp.Image(image_format=mp.ImageFormat.SRGB, data=np.ascontiguousarray(rgb))).face_landmarks
+    f.close = lm.close
+    return f
 
 def load(path):
     im = cv2.imread(path, cv2.IMREAD_UNCHANGED)
@@ -50,7 +52,7 @@ def on_grey(cell):
 def face(detect, cell):
     """iris centres and eye openings for one frame, in cell pixels, or None"""
     rgb = cv2.cvtColor(on_grey(cell), cv2.COLOR_BGR2RGB); H, W = rgb.shape[:2]; pad = 100
-    for z in (1.6, 2.4, 1.1):
+    for z in (1.6, 2.4, 1.1, 3.2, 0.8):
         big = cv2.resize(rgb, (int(W * z), int(H * z)), interpolation=cv2.INTER_CUBIC)
         canvas = np.full((big.shape[0] + 2 * pad, big.shape[1] + 2 * pad, 3), 128, np.uint8)
         canvas[pad:pad + big.shape[0], pad:pad + big.shape[1]] = big
@@ -81,7 +83,7 @@ def follow(grey, w, fa, p, fb):
     win = grey[y0:y1, x0:x1]
     if win.shape[0] <= 2 * R or win.shape[1] <= 2 * R: return None
     m = cv2.matchTemplate(win, tpl, cv2.TM_CCOEFF_NORMED); _, best, _, loc = cv2.minMaxLoc(m)
-    if best < .55: return None
+    if best < .7: return None
     return np.array([x0 + loc[0] + R - fb * w, y0 + loc[1] + R])
 
 def main():
@@ -92,6 +94,7 @@ def main():
     ap.add_argument('--face-model', choices=('on', 'off'), default='on'); ap.add_argument('--ref', help='existing catchlights.json: its points guide tracking and the one-eye choice')
     ap.add_argument('--color', default='#ffffff'); ap.add_argument('--kind', choices=('pulse', 'eyes'), default='pulse')
     ap.add_argument('--r', type=float, default=2); ap.add_argument('--sp', type=float, default=1)
+    ap.add_argument('--verbose', action='store_true')
     a = ap.parse_args()
     name = a.name or os.path.splitext(os.path.basename(a.strip))[0].replace('sprite-', '')
     im = load(a.strip); n = a.frames; w = im.shape[1] // n
@@ -100,7 +103,8 @@ def main():
     prev += [[] for _ in range(n - len(prev))]
     frames, src = [list(f) for f in prev], ['kept' if f else 'dark' for f in prev]
     if a.face_model == 'on':
-        detect = landmarker(); R = [face(detect, im[:, f * w:(f + 1) * w]) for f in range(n)]
+        detect = landmarker(); R = [face(detect, im[:, f * w:(f + 1) * w]) for f in range(n)]; detect.close()
+        if a.verbose: print('openings', [None if r is None else [round(e['open'], 3) for e in r] for r in R], file=sys.stderr)
         if sum(r is not None for r in R) >= n / 2:
             mean = lambda r: sum(e['open'] for e in r) / len(r)
             med = float(np.median([mean(r) for r in R if r])); lim = max(.1, .55 * med)

@@ -20,10 +20,10 @@ jobs:
           base=https://raw.githubusercontent.com/MaukTenieb/insertkoin/main
           curl -sSLo ik.json $base/catchlights.json
           for m in auvergne dogxim c7h5n3o6 cadaver_synod; do curl -sSLo sprite-$m.webp $base/sprite-$m.webp; done
-          python3 catchlight.py sprite-auvergne.webp --k 4 --name auvergne -o out.json
+          python3 catchlight.py sprite-auvergne.webp --k 4 --name auvergne -o out.json --verbose
           python3 catchlight.py sprite-dogxim.webp --k 4 --name dogxim --eyes 1 --ref ik.json -o out2.json
-          python3 catchlight.py sprite-c7h5n3o6.webp --k 4 --name c7h5n3o6 -o out.json --ref out.json
-          python3 catchlight.py sprite-cadaver_synod.webp --k 4 --name cadaver_synod -o out.json --ref out.json
+          python3 catchlight.py sprite-c7h5n3o6.webp --k 4 --name c7h5n3o6 -o out.json --ref out.json --verbose
+          python3 catchlight.py sprite-cadaver_synod.webp --k 4 --name cadaver_synod -o out.json --ref out.json --verbose
           python3 export.py sprite-auvergne.webp --name auvergne --out build
           python3 - <<'PY'
           import json, math
