@@ -6,6 +6,8 @@ on:
     branches: [main]
     paths: ['catchlight.py', 'export.py', '.github/workflows/catchlight-test.yml']
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -14,6 +16,7 @@ jobs:
       - run: pip install -q mediapipe opencv-python-headless numpy
       - name: Run on four Masks
         run: |
+          exec > >(tee log.txt) 2>&1
           base=https://raw.githubusercontent.com/MaukTenieb/insertkoin/main
           curl -sSLo ik.json $base/catchlights.json
           for m in auvergne dogxim c7h5n3o6 cadaver_synod; do curl -sSLo sprite-$m.webp $base/sprite-$m.webp; done
@@ -35,3 +38,9 @@ jobs:
           print('largest gap, cell units:', round(worst, 2)); print('mismatches:', bad)
           raise SystemExit(1 if bad else 0)
           PY
+      - name: Keep the log in the branch ci-results
+        if: always()
+        run: |
+          mkdir -p /tmp/r && cp log.txt out*.json /tmp/r/ 2>/dev/null; cd /tmp/r
+          git init -q -b ci-results && git config user.name ci && git config user.email actions@users.noreply.github.com
+          git add . && git commit -qm "Catchlight test $(date -u +%F)" && git push -qf "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" HEAD:ci-results
