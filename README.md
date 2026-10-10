@@ -35,7 +35,7 @@ The second stage, after the cut: the light that lives in a character's eye, plac
 - **Faces the model does not know** (a beak, a muzzle, a helmet): the face model is switched off for that character, and the lights the artist placed are followed from frame to frame by template matching.
 - **One lit eye** when the character has an odd eye (dogXim): the eye nearest to where it was is kept.
 - **By hand:** click to add a light, drag to move it, double-click or long-press to remove it. Colour, size, rhythm, and a live preview drawn as in Insert Koin.
-- **Command line:** `python3 catchlight.py sprite.webp --frames 8 --k 4 --name auvergne -o catchlights.json` does the same work without a browser (MediaPipe Face Landmarker, downloaded once to `~/.cache/detour`; on Linux it needs the libegl1 and libgles2 packages). `--face-model off --ref catchlights.json` follows the points already placed; `--eyes 1` keeps one lit eye.
+- **Command line:** `python3 catchlight.py sprite.webp --frames 8 --k 4 --name auvergne -o catchlights.json` does the same work without a browser (MediaPipe Face Mesh, the model of the web page: `pip install mediapipe==0.10.14`; on Linux it needs the libegl1 and libgles2 packages). `--face-model off --ref catchlights.json` follows the points already placed; `--eyes 1` keeps one lit eye.
 - **For game engines:** `python3 export.py sprite.webp --frames 8 --name auvergne --out build/` writes a Phaser / TexturePacker atlas, a Godot 4 SpriteFrames resource and a plain JSON of the frames.
 - **Out:** `catchlights.json`, in sprite-cell units. Insert Koin reads it at start-up: put the file in the insertkoin repository and every Mask takes its new lights.
 

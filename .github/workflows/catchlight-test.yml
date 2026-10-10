@@ -12,8 +12,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
       - uses: actions/checkout@v4
-      - run: sudo apt-get install -y -q libegl1 libgles2 >/dev/null && pip install -q mediapipe opencv-python-headless numpy
+      - run: sudo apt-get install -y -q libegl1 libgles2 >/dev/null && pip install -q mediapipe==0.10.14 opencv-python-headless numpy
       - name: Run on four Masks
         run: |
           exec > >(tee log.txt) 2>&1

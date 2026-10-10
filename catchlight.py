@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Catchlight: places a light on the eyes of a drawn character, frame by frame, on a sprite strip.
 
-  pip install mediapipe opencv-python numpy
+  pip install mediapipe==0.10.14 opencv-python numpy   (0.10.14 carries Face Mesh, the model of the web page)
   python3 catchlight.py sprite.webp --frames 8 --k 4 --name auvergne -o catchlights.json
   python3 catchlight.py sprite.webp --frames 8 --k 4 --name croisiere_noire --face-model off --ref catchlights.json -o catchlights.json
 
@@ -28,7 +28,14 @@ def model_path():
     return p
 
 def landmarker():
+    """MediaPipe Face Mesh, the same model as catchlight.html (refined iris points, bundled with mediapipe <= 0.10.14);
+    the newer Face Landmarker task as a fallback"""
     import mediapipe as mp
+    if hasattr(mp, 'solutions'):
+        fm = mp.solutions.face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1, refine_landmarks=True, min_detection_confidence=.3)
+        f = lambda rgb: (fm.process(np.ascontiguousarray(rgb)).multi_face_landmarks or [None])[0] and [fm.process(np.ascontiguousarray(rgb)).multi_face_landmarks[0].landmark]
+        f.close = fm.close
+        return f
     from mediapipe.tasks import python as mpt
     from mediapipe.tasks.python import vision
     opts = vision.FaceLandmarkerOptions(base_options=mpt.BaseOptions(model_asset_path=model_path()), num_faces=1,
