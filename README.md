@@ -35,6 +35,8 @@ The second stage, after the cut: the light that lives in a character's eye, plac
 - **Faces the model does not know** (a beak, a muzzle, a helmet): the face model is switched off for that character, and the lights the artist placed are followed from frame to frame by template matching.
 - **One lit eye** when the character has an odd eye (dogXim): the eye nearest to where it was is kept.
 - **By hand:** click to add a light, drag to move it, double-click or long-press to remove it. Colour, size, rhythm, and a live preview drawn as in Insert Koin.
+- **Command line:** `python3 catchlight.py sprite.webp --frames 8 --k 4 --name auvergne -o catchlights.json` does the same work without a browser (MediaPipe Face Landmarker, downloaded once to `~/.cache/detour`). `--face-model off --ref catchlights.json` follows the points already placed; `--eyes 1` keeps one lit eye.
+- **For game engines:** `python3 export.py sprite.webp --frames 8 --name auvergne --out build/` writes a Phaser / TexturePacker atlas, a Godot 4 SpriteFrames resource and a plain JSON of the frames.
 - **Out:** `catchlights.json`, in sprite-cell units. Insert Koin reads it at start-up: put the file in the insertkoin repository and every Mask takes its new lights.
 
 Tested on the 18 Masks: the face model finds every frame of the human faces and masks (Auvergne, dogXim, C7H5N3O6, Cadaver Synod…); Honey Buzzard and Croisière Noire are placed by hand and followed.
@@ -62,8 +64,8 @@ In each, panel 7 leans on the table: the hands resting on it stay, the wood goes
 
 ## Rights
 
-Copyright © Mauk Tenieb & Korhogo. All rights reserved. The source code is published for reading, reflections, additions, requests, etc.
+The code (detour.py, catchlight.py, catchlight.html, export.py) is under the MIT licence: see LICENSE.
 
-No reproduction or reuse without written permission, including for training or use by artificial-intelligence systems.
+The images, and the characters, names and lore of Korhogo and the Korhogo Fauna, stay the property of Mauk Tenieb & Korhogo, all rights reserved, including for training or use by artificial-intelligence systems.
 
-The neural models are third-party works, downloaded at first run and not included here: U²-Net (Qin et al.) and IS-Net (DIS, Qin et al.), Apache-2.0, through the rembg releases. Catchlight loads MediaPipe Face Mesh (Google, Apache-2.0) from jsDelivr.
+The neural models are third-party works, downloaded at first run and kept outside this repository: U²-Net (Qin et al.) and IS-Net (DIS, Qin et al.), Apache-2.0, through the rembg releases; MediaPipe Face Landmarker and Face Mesh (Google), Apache-2.0.
