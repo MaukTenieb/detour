@@ -136,7 +136,8 @@ def remove_pockets(m,J,k=3.5,area=40):
         ring=(cv2.dilate(sel.astype(np.uint8),K,iterations=3)>0)&~sel&(m==1)
         if ring.sum()<10:continue
         c=L[sel].mean(0);rc=L[ring].mean(0);bc=Bl[sel].mean(0)
-        if dist(c,rc)>22 and dist(c,bc)<7 and dist(c,rc)>3*dist(c,bc):out[sel]=0;gone+=int(ar)
+        chroma=float(np.hypot(c[1]-bc[1],c[2]-bc[2]))  # hue against the local backdrop: a beige hoof is warmer than the beige floor
+        if dist(c,rc)>22 and dist(c,bc)<7 and dist(c,rc)>3*dist(c,bc) and chroma<2.8:out[sel]=0;gone+=int(ar)
     return out,gone
 def refine_outline(m,J,k=3.5,r=4):
     """the neural judges see shapes, not pixels: within a few pixels of the outline the backdrop model decides.
