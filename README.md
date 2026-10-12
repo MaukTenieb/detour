@@ -1,6 +1,6 @@
 # Detour
 
-Cuts a sheet of eight portraits (one figure, eight expressions, 4×2 grid) into a transparent sprite strip, with no per-image settings.
+Cuts a sheet of eight portraits (one figure, eight expressions, 4×2 grid) into a transparent sprite strip, with one set of settings for every sheet.
 
 ```
 pip install opencv-python numpy onnxruntime
@@ -26,9 +26,9 @@ The story of the method, with its failures and fixes: [Detour: cutting Midjourne
 
 ## Catchlight
 
-The second stage, after the cut: the light that lives in a character's eye, placed on every frame of the strip.
+The second stage, after the cut, places a catchlight on each eye, frame by frame.
 
-**Online: https://mauktenieb.github.io/detour/catchlight.html**, one HTML page, nothing to install.
+**Online: https://mauktenieb.github.io/detour/catchlight.html**. Catchlight runs as one HTML page in the browser.
 
 - **The eyes found on each frame:** MediaPipe Face Mesh, run in the browser, gives the centre of each iris. Each frame is tried at three scales and mirrored before it counts as missed.
 - **Shut lids stay dark:** the opening of each eye is measured against the character's usual opening; a frame with the lids closed gets no light.
@@ -44,11 +44,11 @@ Tested on the 18 Masks: the face model finds every frame of the human faces and 
 <!-- network:start -->
 ## Provenance
 
-Built for [Insert Koin](https://mauktenieb.github.io/insertkoin/), the browser arcade of the Korhogo Fauna: it cut the sprites of the 18 Masks.
+Built for [Insert Koin](https://mauktenieb.github.io/insertkoin/), Mauk Tenieb's browser games set in Korhogo: it cut the sprites of the 18 Masks.
 
-Other tools by Mauk Tenieb: [FaunaTor](https://github.com/MaukTenieb/faunator): Tor inside a web page · [KorhoTube](https://github.com/MaukTenieb/korhotube): a YouTube channel as JSON · [Reporhogo](https://github.com/MaukTenieb/reporhogo): searches forty-one code forges for a topic · [Photofauna](https://github.com/MaukTenieb/Photofauna): the pocket photo emulator · [TorView](https://github.com/MaukTenieb/torview): a minimal Tor browser, Go.
+Other tools by Mauk Tenieb: [FaunaTor](https://github.com/MaukTenieb/faunator): reads web and .onion pages through Tor clients that run in the page · [KorhoTube](https://github.com/MaukTenieb/korhotube): lists every video of a YouTube channel as JSON · [Reporhogo](https://github.com/MaukTenieb/reporhogo): searches forty-one code forges for a topic and lists the repositories it finds · [Photofauna](https://github.com/MaukTenieb/Photofauna): a photo editor with 44 looks, part of Insert Koin · [TorView](https://github.com/MaukTenieb/torview): a desktop browser in Go that routes its traffic through the official Tor daemon.
 
-Start here: https://mauktenieb.github.io/
+Index of Mauk Tenieb's sites: https://mauktenieb.github.io/
 <!-- network:end -->
 
 ## Blind test
