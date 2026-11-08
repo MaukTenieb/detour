@@ -102,7 +102,7 @@ const T={
  fr:{open:'Ouvrir une planche…',frames:'Images',detect:'Trouver les yeux',track:'Suivre depuis mes points',clear:'Vider l’image',undo:'Annuler',light:'Lumière',lit:'œil(s) allumé(s)',size:'Taille',speed:'Vitesse',zoom:'Visage / Entier',dl:'Télécharger catchlights.json',copy:'Copier',up:'Le déposer dans Insert Koin',
   help:'<b>Clic</b> sur un endroit vide : ajoute une lumière. <b>Glisser</b> une lumière : la déplace. <b>Double-clic</b> ou <b>appui long</b> sur une lumière : la retire. Une image sans lumière garde les yeux éteints (paupières closes, tête tournée).',
   loading:'Chargement du modèle de visage…',run:(i,n)=>`Image ${i+1} sur ${n}…`,done:(a,b,c)=>`${a} images par le modèle de visage, ${b} suivies, ${c} laissées éteintes.`,nomodel:'Le modèle de visage n’a pas chargé (hors ligne ?). Pose les lumières à la main, puis « Suivre depuis mes points ».',tracked:n=>`${n} images suivies depuis tes points.`,fm:'Modèle de visage :',on:'oui',off:'non (bec, mufle…)',unsure:n=>`Le modèle de visage ne reconnaît pas ce visage : tes points sont gardés, ${n} images suivies depuis eux.`,need:'Pose d’abord les lumières sur une image.',copied:'Copié.',saved:'Gardé dans ce navigateur.',sheet:'Planche',none:'—',src:{face:'visage',track:'suivi',hand:'main',kept:'gardé',dark:'paupières closes',miss:'introuvable'}}};
-let LANG='en';try{LANG=localStorage.getItem('ik.lang')||(navigator.language||'').slice(0,2)==='fr'&&'fr'||'en';}catch(e){}
+let LANG='en';try{LANG=localStorage.getItem('ik.lang')||'en';}catch(e){}
 if(LANG!=='fr')LANG='en';
 const $=id=>document.getElementById(id),t=k=>T[LANG][k];
 function fmBtn(){const m=M();$('fm').textContent=t('fm')+' '+(m&&m.model===false?t('off'):t('on'));$('fm').classList.toggle('on',!(m&&m.model===false));}
